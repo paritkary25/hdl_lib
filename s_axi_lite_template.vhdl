@@ -134,8 +134,8 @@ architecture arch_imp of slave_lite_v3_0_S00_AXI is
     -- ADDR_LSB is used for addressing 32/64 bit registers/memories
     -- ADDR_LSB = 2 for 32 bits (n downto 2)
     -- ADDR_LSB = 3 for 64 bits (n downto 3)
-    constant ADDR_LSB        : integer := (C_S_AXI_DATA_WIDTH/32) + 1;
-    constant OPT_MEM_ADDR_BITS : integer := 6;
+    constant ADDR_LSB          : integer := (C_S_AXI_DATA_WIDTH/32) + 1;
+    constant OPT_MEM_ADDR_BITS : integer := integer(ceil(log2(real(C_AXI_N_REGS)))) - 1;
     ------------------------------------------------
     -- Signals for user logic register space example
     --------------------------------------------------
