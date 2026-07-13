@@ -1,0 +1,7 @@
+v 4
+file . "../axi4s_fifo.vhdl" "be8810a04773288a6f803cce3a6bce40d01f0a13" "20260708152020.112":
+  entity axi4s_fifo at 10( 331) + 0 on 15;
+  architecture rtl of axi4s_fifo at 43( 1157) + 0 on 16;
+file . "axi4s_fifo_tb.vhdl" "de68fa5c0c2bb8d3b7897dd5abca8096a766f35e" "20260708152020.114":
+  entity axi4s_fifo_tb at 14( 628) + 0 on 17;
+  architecture sim of axi4s_fifo_tb at 23( 798) + 0 on 18;
