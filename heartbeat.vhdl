@@ -1,23 +1,12 @@
-----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
--- Create Date: 10/07/2025 11:34:49 PM
--- Design Name: 
--- Module Name: heartbeat - Behavioral
--- Project Name: generic
--- Target Devices: none
--- Tool Versions: 
--- Description: 
--- 
--- Dependencies: 
--- 
--- Revision:
--- Revision 0.01 - File Created
--- Additional Comments:
--- 
-----------------------------------------------------------------------------------
-
+---------------------------------------------------------------------
+-- File: heartbeat.vhdl
+-- Author: Y.U.P.
+--
+-- Scale down the clock to 1 Hz
+-- Serves as a indicator to see the fabric working
+-- The scale down can be done to 1 kHz to check the frequency via
+-- DSO easily.
+---------------------------------------------------------------------
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;

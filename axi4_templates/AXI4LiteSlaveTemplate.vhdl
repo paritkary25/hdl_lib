@@ -142,8 +142,8 @@ architecture arch_imp of axiliteslave is
   type reg_array_out is array (0 to (C_AXI_N_REGS - C_AXI_N_REGS_IN - 1)) of std_logic_vector(C_S_AXI_DATA_WIDTH - 1 downto 0);
 
   -- Number of Slave Registers 68
-  signal slv_reg_in  : reg_array_in  := (others => (others => '0'));
-  signal slv_reg_out : reg_array_out := (others => (others => '0'));
+  signal slv_reg_in  : reg_array_in;
+  signal slv_reg_out : reg_array_out;
 
   -- AXI4LITE signals
   signal axi_awaddr  : std_logic_vector(C_S_AXI_ADDR_WIDTH - 1 downto 0) := (others => '0');
