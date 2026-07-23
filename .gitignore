@@ -17,6 +17,7 @@ ref.*
 # Simulation output
 *.vcd
 *.ghw
+work/
 
 # Events log
 events_log*
