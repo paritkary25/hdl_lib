@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- File: s_axi_lite_template.vhdl
 -- Author: Y.U.P.
--- Last Modified: 2026/04/29 01:01
+-- Last Modified: 2026/05/28 00:55
 --
 -- Modified template for the AXI Slave bus
 -- Drawbacks in the default template in the Vivado:
@@ -41,6 +41,13 @@ entity axiliteslave is
   );
   port (
     -- Users to add ports here
+    i_last_frame : in    std_logic_vector(63 downto 0);
+    i_state      : in    std_logic;
+
+    o_num_pkt    : out   std_logic_vector(31 downto 0);
+    o_num_frames : out   std_logic_vector(31 downto 0);
+    o_start      : out   std_logic;
+    o_en_tlast   : out   std_logic;
 
     -- User ports ends
     -- Do not modify the ports beyond this line
@@ -137,9 +144,9 @@ end entity axiliteslave;
 
 architecture arch_imp of axiliteslave is
 
-  type reg_array_in is array (0 to C_AXI_N_REGS_IN - 1) of std_logic_vector(C_S_AXI_DATA_WIDTH - 1 downto 0);
+  type reg_array_in is array (0 to c_axi_n_regs_in - 1) of std_logic_vector(C_S_AXI_DATA_WIDTH - 1 downto 0);
 
-  type reg_array_out is array (0 to (C_AXI_N_REGS - C_AXI_N_REGS_IN - 1)) of std_logic_vector(C_S_AXI_DATA_WIDTH - 1 downto 0);
+  type reg_array_out is array (0 to (c_axi_n_regs - c_axi_n_regs_in - 1)) of std_logic_vector(C_S_AXI_DATA_WIDTH - 1 downto 0);
 
   -- Number of Slave Registers 68
   signal slv_reg_in  : reg_array_in;
@@ -299,6 +306,7 @@ begin
   begin
 
     if rising_edge(s_axi_aclk) then
+      o_start <= '0';
       if (s_axi_aresetn = '0') then
         -- clear the register array
         for i in 0 to C_AXI_N_REGS_IN - 1 loop
@@ -312,6 +320,11 @@ begin
           -- compute index from address slice and write bytes per WSTRB
           idx := to_integer(unsigned(mem_logic));
           if (idx >= 0 and idx < C_AXI_N_REGS_IN) then
+            -- CUSTOMISING TO DETECT WRITE TO 0x18 START REGISTER ---
+            if (idx = 3) then
+              o_start <= '1';
+            end if;
+            ---------------------------------------------------------
             slv_reg_in(idx) <= s_axi_wdata;
           end if;
         end if;
@@ -401,16 +414,22 @@ begin
 
   end process p_rlg;
 
--- S_AXI_RDATA <= slv_reg_out(to_integer(unsigned(axi_araddr(ADDR_LSB + OPT_MEM_ADDR_BITS downto ADDR_LSB)) - C_AXI_N_REGS_IN));
+  -- S_AXI_RDATA <= slv_reg_out(to_integer(unsigned(axi_araddr(ADDR_LSB + OPT_MEM_ADDR_BITS downto ADDR_LSB)) - C_AXI_N_REGS_IN));
 
--------------------------------------------------------------------------------
--- Example usage:
--- o_my_output <= slv_reg_in(0)(14 downto 0);
--- slv_reg_out( N -(C_AXI_N_REGS_IN) )(3 downto 0) <= i_my_input;
--- Note that, here N means Nth register among all the AXI4Lite registers
--- We need output offset of ( C_AXI_N_REGS_IN - 1 ) offset to properly map slv_reg_out
--- Add user connections here --------------------------------------------------
+  -------------------------------------------------------------------------------
+  -- Example usage:
+  -- o_my_output <= slv_reg_in(0)(14 downto 0);
+  -- slv_reg_out( N -(C_AXI_N_REGS_IN) )(3 downto 0) <= i_my_input;
+  -- Note that, here N means Nth register among all the AXI4Lite registers
+  -- We need output offset of ( C_AXI_N_REGS_IN - 1 ) offset to properly map slv_reg_out
+  -- Add user connections here --------------------------------------------------
+  o_num_pkt    <= slv_reg_in(0);
+  o_num_frames <= slv_reg_in(1);
+  o_en_tlast   <= slv_reg_in(2)(0);
 
+  slv_reg_out(4 - (C_AXI_N_REGS_IN))    <= i_last_frame(31 downto 0);
+  slv_reg_out(5 - (C_AXI_N_REGS_IN))    <= i_last_frame(63 downto 32);
+  slv_reg_out(6 - (C_AXI_N_REGS_IN))(0) <= i_state;
 -------------------------------------------------------------------------------
 
 end architecture arch_imp;

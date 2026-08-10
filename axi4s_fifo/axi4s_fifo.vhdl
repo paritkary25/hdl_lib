@@ -46,14 +46,14 @@ architecture rtl of axi4s_fifo is
 
   type t_fifo_data is array (0 to g_DEPTH - 1) of std_logic_vector(G_WIDTH downto 0);
 
-  signal r_fifo_data : t_fifo_data := (others => (others => '0'));
+  signal r_fifo_data : t_fifo_data;
 
-  signal r_wr_index : unsigned(C_ADDR_WIDTH  downto 0) := (others => '0');
-  signal r_rd_index : unsigned(C_ADDR_WIDTH  downto 0) := (others => '0');
+  signal r_wr_index : unsigned(C_ADDR_WIDTH  downto 0);
+  signal r_rd_index : unsigned(C_ADDR_WIDTH  downto 0);
 
   -- Keep track of number of packets inside the FIFO
   -- Converts this to packet to packet FIFO
-  signal npkt_inside : unsigned(C_ADDR_WIDTH  downto 0) := (others => '0');
+  signal npkt_inside : unsigned(C_ADDR_WIDTH  downto 0);
 
   signal w_full  : std_logic;
   signal w_empty : std_logic;

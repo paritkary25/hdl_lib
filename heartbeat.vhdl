@@ -28,14 +28,14 @@ end entity heartbeat;
 
 architecture behavioral of heartbeat is
 
-  signal counter : integer   := 0;
-  signal hb      : std_logic := '0';
+  signal counter : integer;
+  signal hb      : std_logic;
 
 begin
 
   o_rst <= not i_nrst;
 
-  process (i_clk) is
+  p_main : process (i_clk) is
   begin
 
     if rising_edge(i_clk) then
@@ -47,7 +47,7 @@ begin
       end if;
     end if;
 
-  end process;
+  end process p_main;
 
   o_hb <= hb;
 
