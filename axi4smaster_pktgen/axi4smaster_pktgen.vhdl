@@ -2,9 +2,9 @@
 -- File: axi4smaster_pktgen.vhdl
 -- Author: Y.U.P.
 -- Created: 2026-05-24 Sun 22:26
--- Last Modified: 2026/05/28 14:50
+-- Last Modified: 2026-08-10 Mon 22:53
 -- Description:
---   Generates AXI4-Stream packets for testing the PCDMA undefined burst length behaviour. See README.md for details.
+--   Generates AXI4-Stream packets for testing
 --------------------------------------------------------------------
 
 library ieee;
@@ -119,6 +119,14 @@ architecture arch of axi4smaster_pktgen is
 
   signal num_pkt_reg    : std_logic_vector(31 downto 0);
   signal num_frames_reg : std_logic_vector(31 downto 0);
+
+  -- Data density config: number of transfers between bubbles
+  -- (tvalid deasserted for one cycle). 0 disables bubble insertion.
+  signal density_reg : std_logic_vector(15 downto 0);
+  signal density     : unsigned(15 downto 0);
+
+  signal bubble_cnt : unsigned(15 downto 0);
+  signal in_bubble  : std_logic;
   -------------------------------------------------------------------
 
   -- AXI4Lite component ---------------------------------------------
@@ -137,6 +145,7 @@ architecture arch of axi4smaster_pktgen is
       o_num_frames : out   std_logic_vector(31 downto 0);
       o_start      : out   std_logic;
       o_en_tlast   : out   std_logic;
+      o_density    : out   std_logic_vector(15 downto 0);
 
       s_axi_aclk    : in    std_logic;
       s_axi_aresetn : in    std_logic;
@@ -209,6 +218,7 @@ begin
       o_num_frames => num_frames_reg,
       o_start      => start,
       o_en_tlast   => en_tlast,
+      o_density    => density_reg,
 
       s_axi_aclk    => i_clk,
       s_axi_aresetn => i_resetn,
@@ -238,6 +248,7 @@ begin
   -- Converting config to unsigned ----------------------------------
   num_pkt    <= unsigned(num_pkt_reg);
   num_frames <= unsigned(num_frames_reg);
+  density    <= unsigned(density_reg);
   -------------------------------------------------------------------
 
   -- Frame generation -----------------------------------------------
@@ -273,10 +284,12 @@ begin
       tlast  <= '0';
 
       if (i_resetn = '0') then
-        state     <= STATE_IDLE;
-        trx_cnt   <= (others => '0');
-        pkt_cnt   <= (others => '0');
-        frame_cnt <= (others => '0');
+        state      <= STATE_IDLE;
+        trx_cnt    <= (others => '0');
+        pkt_cnt    <= (others => '0');
+        frame_cnt  <= (others => '0');
+        bubble_cnt <= (others => '0');
+        in_bubble  <= '0';
       else
 
         case state is
@@ -284,17 +297,31 @@ begin
           when STATE_IDLE =>
 
             if (start = '1') then
-              state     <= STATE_SEND;
-              pkt_cnt   <= (others => '0');
-              frame_cnt <= (others => '0');
-              trx_cnt   <= trx_cnt + 1;
+              state      <= STATE_SEND;
+              pkt_cnt    <= (others => '0');
+              frame_cnt  <= (others => '0');
+              trx_cnt    <= trx_cnt + 1;
+              bubble_cnt <= (others => '0');
+              in_bubble  <= '0';
             end if;
 
           when STATE_SEND =>
 
-            if (s0_axis_tready = '1') then
+            if (in_bubble = '1') then
+              -- forced idle cycle: tvalid stays low (default), resume next cycle
+              in_bubble <= '0';
+            elsif (s0_axis_tready = '1') then
               tdata  <= frame_resized;
               tvalid <= '1';
+
+              -- data density: after `density` back-to-back transfers, insert
+              -- a one cycle bubble (tvalid = 0). density = 0 disables this.
+              if (density /= 0 and bubble_cnt = (density - 1)) then
+                bubble_cnt <= (others => '0');
+                in_bubble  <= '1';
+              else
+                bubble_cnt <= bubble_cnt + 1;
+              end if;
 
               if (frame_cnt = (num_frames - 1)) then
                 frame_cnt <= (others => '0');

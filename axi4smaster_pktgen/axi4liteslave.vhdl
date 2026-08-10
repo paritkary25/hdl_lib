@@ -48,6 +48,7 @@ entity axiliteslave is
     o_num_frames : out   std_logic_vector(31 downto 0);
     o_start      : out   std_logic;
     o_en_tlast   : out   std_logic;
+    o_density    : out   std_logic_vector(15 downto 0);
 
     -- User ports ends
     -- Do not modify the ports beyond this line
@@ -426,6 +427,7 @@ begin
   o_num_pkt    <= slv_reg_in(0);
   o_num_frames <= slv_reg_in(1);
   o_en_tlast   <= slv_reg_in(2)(0);
+  o_density    <= slv_reg_in(2)(31 downto 16);
 
   slv_reg_out(4 - (C_AXI_N_REGS_IN))    <= i_last_frame(31 downto 0);
   slv_reg_out(5 - (C_AXI_N_REGS_IN))    <= i_last_frame(63 downto 32);
